@@ -127,6 +127,7 @@ fn main() {
     }
 
     for command_to_run in std::env::args().skip(1) {
+        let command_to_run = command_to_run.replace("\\n", "\n");
         connection
             .write(&format!("{}\n", command_to_run).as_bytes())
             .unwrap();
