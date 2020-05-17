@@ -31,6 +31,7 @@ fn main() {
     let mut login_state = LoginState::Initial;
     let username_regex = Regex::new(r"(?m)^[Uu]sername:").unwrap();
     let password_regex = Regex::new(r"(?m)^[Pp]assword:").unwrap();
+    let author_failed_regex = Regex::new(r"(?m)^% Authorization failed.").unwrap();
     let privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z()]+)#").unwrap();
 
     loop {
@@ -52,6 +53,9 @@ fn main() {
                             let (_, remainder) = data_buffer.split_at(user_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::SentUsername;
+                        }
+                        if let Some(author_failed_match) = author_failed_regex.find(&data_buffer) {
+                            panic!("Authorization failed!");
                         }
                     }
                     LoginState::SentUsername => {
