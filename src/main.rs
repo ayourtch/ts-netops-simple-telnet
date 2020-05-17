@@ -13,6 +13,7 @@ enum LoginState {
     SentUsername,
     SentPassword,
     Established,
+    EstablishedNonPriv,
     ReadingOutput,
 }
 
@@ -33,6 +34,7 @@ fn main() {
     let password_regex = Regex::new(r"(?m)^[Pp]assword:").unwrap();
     let author_failed_regex = Regex::new(r"(?m)^% Authorization failed.").unwrap();
     let privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z()]+)#").unwrap();
+    let non_privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z]+)>").unwrap();
 
     loop {
         use telnet::TelnetEvent;
@@ -65,6 +67,13 @@ fn main() {
                             /* Session established */
                             break;
                         }
+                        if let Some(non_privexec_match) = non_privexec_regex.find(&data_buffer) {
+                            debug!("Matched non-privexec prompt! Need to enable!");
+                            let (_, remainder) = data_buffer.split_at(non_privexec_match.end());
+                            data_buffer = remainder.to_string();
+                            connection.write(b"enable\n").unwrap();
+                            login_state = LoginState::Initial;
+                        }
                         if let Some(password_match) = password_regex.find(&data_buffer) {
                             debug!("Matched password prompt! Data buffer: {}", &data_buffer);
                             connection
@@ -96,6 +105,13 @@ fn main() {
                             login_state = LoginState::Established;
                             /* Session established */
                             break;
+                        }
+                        if let Some(non_privexec_match) = non_privexec_regex.find(&data_buffer) {
+                            debug!("Matched non-privexec prompt! Need to enable!");
+                            let (_, remainder) = data_buffer.split_at(non_privexec_match.end());
+                            data_buffer = remainder.to_string();
+                            connection.write(b"enable\n").unwrap();
+                            login_state = LoginState::Initial;
                         }
                     }
                     _ => {
