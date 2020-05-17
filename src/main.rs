@@ -65,6 +65,15 @@ fn main() {
                             /* Session established */
                             break;
                         }
+                        if let Some(password_match) = password_regex.find(&data_buffer) {
+                            debug!("Matched password prompt! Data buffer: {}", &data_buffer);
+                            connection
+                                .write(&format!("{}\n", &ts_netops_pass).as_bytes())
+                                .unwrap();
+                            let (_, remainder) = data_buffer.split_at(password_match.end());
+                            data_buffer = remainder.to_string();
+                            login_state = LoginState::SentPassword;
+                        }
                     }
                     LoginState::SentUsername => {
                         let maybe_password_match = password_regex.find(&data_buffer);
