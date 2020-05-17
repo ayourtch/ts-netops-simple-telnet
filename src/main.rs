@@ -46,7 +46,7 @@ fn main() {
                         let maybe_user_match = username_regex.find(&data_buffer);
                         if let Some(user_match) = maybe_user_match {
                             debug!("Matched username prompt! Data buffer: {}", &data_buffer);
-                            connection.write(&format!("{}\n", &ts_netops_user).as_bytes());
+                            connection.write(&format!("{}\n", &ts_netops_user).as_bytes()).unwrap();
                             let (_, remainder) = data_buffer.split_at(user_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::SentUsername;
@@ -56,7 +56,7 @@ fn main() {
                         let maybe_password_match = password_regex.find(&data_buffer);
                         if let Some(password_match) = maybe_password_match {
                             debug!("Matched password prompt! Data buffer: {}", &data_buffer);
-                            connection.write(&format!("{}\n", &ts_netops_pass).as_bytes());
+                            connection.write(&format!("{}\n", &ts_netops_pass).as_bytes()).unwrap();
                             let (_, remainder) = data_buffer.split_at(password_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::SentPassword;
@@ -84,7 +84,7 @@ fn main() {
         }
     }
     debug!("Showtime!");
-    connection.write(b"term len 0\n");
+    connection.write(b"term len 0\n").unwrap();
     login_state = LoginState::ReadingOutput;
 
     loop {
@@ -117,7 +117,7 @@ fn main() {
         }
     }
 
-    connection.write(&format!("{}\n", command_to_run).as_bytes());
+    connection.write(&format!("{}\n", command_to_run).as_bytes()).unwrap();
     login_state = LoginState::ReadingOutput;
 
     loop {
