@@ -8,7 +8,16 @@ fn main() {
     let mut connection =
         Telnet::connect(tcp_target, 256).expect("Couldn't connect to the server...");
     loop {
+        use telnet::TelnetEvent;
         let event = connection.read().expect("Read Error");
-        println!("{:?}", event);
+        match &event {
+            TelnetEvent::Data(bytes) => {
+                let string = String::from_utf8_lossy(&bytes);
+                println!("Data: {}", &string);
+            }
+            _ => {
+                println!("{:?}", &event);
+            }
+        }
     }
 }
