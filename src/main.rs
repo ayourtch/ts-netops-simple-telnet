@@ -3,6 +3,7 @@ extern crate telnet;
 use regex::Regex;
 use telnet::Telnet;
 
+#[derive(Debug)]
 enum LoginState {
     Initial,
     SentUsername,
@@ -42,7 +43,7 @@ fn main() {
                         }
                     }
                     _ => {
-                        println!("Other login state. data buffer: {}", &data_buffer);
+                        println!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
                     }
                 }
             }
