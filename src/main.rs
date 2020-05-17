@@ -140,6 +140,7 @@ fn main() {
                 TelnetEvent::Data(bytes) => {
                     let string = String::from_utf8_lossy(&bytes);
                     data_buffer.push_str(&string);
+                    debug!("Got output:'{}'", &string);
                     match login_state {
                         LoginState::ReadingOutput => {
                             let maybe_privexec_match = privexec_regex.find(&data_buffer);
