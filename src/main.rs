@@ -1,7 +1,8 @@
+extern crate env_logger;
 extern crate regex;
 extern crate telnet;
-extern crate env_logger;
-#[macro_use] extern crate log;
+#[macro_use]
+extern crate log;
 
 use regex::Regex;
 use telnet::Telnet;
@@ -12,7 +13,7 @@ enum LoginState {
     SentUsername,
     SentPassword,
     Established,
-    ReadingOutput
+    ReadingOutput,
 }
 
 fn main() {
@@ -46,7 +47,9 @@ fn main() {
                         let maybe_user_match = username_regex.find(&data_buffer);
                         if let Some(user_match) = maybe_user_match {
                             debug!("Matched username prompt! Data buffer: {}", &data_buffer);
-                            connection.write(&format!("{}\n", &ts_netops_user).as_bytes()).unwrap();
+                            connection
+                                .write(&format!("{}\n", &ts_netops_user).as_bytes())
+                                .unwrap();
                             let (_, remainder) = data_buffer.split_at(user_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::SentUsername;
@@ -56,7 +59,9 @@ fn main() {
                         let maybe_password_match = password_regex.find(&data_buffer);
                         if let Some(password_match) = maybe_password_match {
                             debug!("Matched password prompt! Data buffer: {}", &data_buffer);
-                            connection.write(&format!("{}\n", &ts_netops_pass).as_bytes()).unwrap();
+                            connection
+                                .write(&format!("{}\n", &ts_netops_pass).as_bytes())
+                                .unwrap();
                             let (_, remainder) = data_buffer.split_at(password_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::SentPassword;
@@ -74,7 +79,10 @@ fn main() {
                         }
                     }
                     _ => {
-                        debug!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
+                        debug!(
+                            "Other state: {:?}. data buffer: {}",
+                            &login_state, &data_buffer
+                        );
                     }
                 }
             }
@@ -104,10 +112,12 @@ fn main() {
                             login_state = LoginState::Established;
                             break;
                         }
-
                     }
                     _ => {
-                        debug!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
+                        debug!(
+                            "Other state: {:?}. data buffer: {}",
+                            &login_state, &data_buffer
+                        );
                     }
                 }
             }
@@ -117,7 +127,9 @@ fn main() {
         }
     }
 
-    connection.write(&format!("{}\n", command_to_run).as_bytes()).unwrap();
+    connection
+        .write(&format!("{}\n", command_to_run).as_bytes())
+        .unwrap();
     login_state = LoginState::ReadingOutput;
     let mut result = "".to_string();
 
@@ -133,16 +145,19 @@ fn main() {
                         let maybe_privexec_match = privexec_regex.find(&data_buffer);
                         if let Some(privexec_match) = maybe_privexec_match {
                             debug!("Matched privexec prompt! Data buffer: {}", &data_buffer);
-                            let (command_output, remainder) = data_buffer.split_at(privexec_match.end());
+                            let (command_output, remainder) =
+                                data_buffer.split_at(privexec_match.end());
                             result = command_output.to_string();
                             data_buffer = remainder.to_string();
                             login_state = LoginState::Established;
                             break;
                         }
-
                     }
                     _ => {
-                        debug!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
+                        debug!(
+                            "Other state: {:?}. data buffer: {}",
+                            &login_state, &data_buffer
+                        );
                     }
                 }
             }
