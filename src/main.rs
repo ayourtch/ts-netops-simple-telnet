@@ -119,6 +119,7 @@ fn main() {
 
     connection.write(&format!("{}\n", command_to_run).as_bytes()).unwrap();
     login_state = LoginState::ReadingOutput;
+    let mut result = "".to_string();
 
     loop {
         use telnet::TelnetEvent;
@@ -132,7 +133,8 @@ fn main() {
                         let maybe_privexec_match = privexec_regex.find(&data_buffer);
                         if let Some(privexec_match) = maybe_privexec_match {
                             debug!("Matched privexec prompt! Data buffer: {}", &data_buffer);
-                            let (_, remainder) = data_buffer.split_at(privexec_match.end());
+                            let (command_output, remainder) = data_buffer.split_at(privexec_match.end());
+                            result = command_output.to_string();
                             data_buffer = remainder.to_string();
                             login_state = LoginState::Established;
                             break;
@@ -149,4 +151,5 @@ fn main() {
             }
         }
     }
+    println!("Result: {}", &result);
 }
