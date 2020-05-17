@@ -57,6 +57,14 @@ fn main() {
                         if let Some(author_failed_match) = author_failed_regex.find(&data_buffer) {
                             panic!("Authorization failed!");
                         }
+                        if let Some(privexec_match) = privexec_regex.find(&data_buffer) {
+                            debug!("Matched privexec prompt! Session is open!");
+                            let (_, remainder) = data_buffer.split_at(privexec_match.end());
+                            data_buffer = remainder.to_string();
+                            login_state = LoginState::Established;
+                            /* Session established */
+                            break;
+                        }
                     }
                     LoginState::SentUsername => {
                         let maybe_password_match = password_regex.find(&data_buffer);
