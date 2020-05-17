@@ -19,7 +19,7 @@ fn main() {
 
     let mut data_buffer = String::new();
     let mut login_state = LoginState::Initial;
-    let username_regex = Regex::new(r"^[Uu]sername:").unwrap();
+    let username_regex = Regex::new(r"(?m)^[Uu]sername:").unwrap();
 
     loop {
         use telnet::TelnetEvent;
