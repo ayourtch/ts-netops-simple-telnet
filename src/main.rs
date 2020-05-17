@@ -12,6 +12,7 @@ enum LoginState {
 
 fn main() {
     let ts_netops_host = std::env::var("TS_NETOPS_HOST").unwrap();
+    let ts_netops_user = std::env::var("TS_NETOPS_USER").unwrap();
     let tcp_target = format!("{}:23", ts_netops_host);
 
     let mut connection =
@@ -31,8 +32,13 @@ fn main() {
                 match login_state {
                     LoginState::Initial => {
                         println!("In initial state");
-                        if username_regex.is_match(&data_buffer) {
+                        let maybe_user_match = username_regex.find(&data_buffer);
+                        if let Some(user_match) = maybe_user_match {
                             println!("Matchched username prompt! Data buffer: {}", &data_buffer);
+                            connection.write(&format!("{}\n", &ts_netops_user).as_bytes());
+                            let (_, remainder) = data_buffer.split_at(user_match.end());
+                            data_buffer = remainder.to_string();
+                            login_state = LoginState::SentUsername;
                         }
                     }
                     _ => {
