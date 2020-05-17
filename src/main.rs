@@ -31,7 +31,7 @@ fn main() {
     let mut login_state = LoginState::Initial;
     let username_regex = Regex::new(r"(?m)^[Uu]sername:").unwrap();
     let password_regex = Regex::new(r"(?m)^[Pp]assword:").unwrap();
-    let privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z]+)#").unwrap();
+    let privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z()]+)#").unwrap();
 
     loop {
         use telnet::TelnetEvent;
