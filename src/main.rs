@@ -1,5 +1,8 @@
 extern crate regex;
 extern crate telnet;
+extern crate env_logger;
+#[macro_use] extern crate log;
+
 use regex::Regex;
 use telnet::Telnet;
 
@@ -13,6 +16,7 @@ enum LoginState {
 }
 
 fn main() {
+    env_logger::init();
     let ts_netops_host = std::env::var("TS_NETOPS_HOST").unwrap();
     let ts_netops_user = std::env::var("TS_NETOPS_USER").unwrap();
     let ts_netops_pass = std::env::var("TS_NETOPS_PASS").unwrap();
@@ -36,13 +40,12 @@ fn main() {
             TelnetEvent::Data(bytes) => {
                 let string = String::from_utf8_lossy(&bytes);
                 data_buffer.push_str(&string);
-                println!("State: {:?}. data buffer: '{}'", &login_state, &data_buffer);
+                trace!("State: {:?}. data buffer: '{}'", &login_state, &data_buffer);
                 match login_state {
                     LoginState::Initial => {
-                        println!("In initial state");
                         let maybe_user_match = username_regex.find(&data_buffer);
                         if let Some(user_match) = maybe_user_match {
-                            println!("Matched username prompt! Data buffer: {}", &data_buffer);
+                            debug!("Matched username prompt! Data buffer: {}", &data_buffer);
                             connection.write(&format!("{}\n", &ts_netops_user).as_bytes());
                             let (_, remainder) = data_buffer.split_at(user_match.end());
                             data_buffer = remainder.to_string();
@@ -52,7 +55,7 @@ fn main() {
                     LoginState::SentUsername => {
                         let maybe_password_match = password_regex.find(&data_buffer);
                         if let Some(password_match) = maybe_password_match {
-                            println!("Matched password prompt! Data buffer: {}", &data_buffer);
+                            debug!("Matched password prompt! Data buffer: {}", &data_buffer);
                             connection.write(&format!("{}\n", &ts_netops_pass).as_bytes());
                             let (_, remainder) = data_buffer.split_at(password_match.end());
                             data_buffer = remainder.to_string();
@@ -62,7 +65,7 @@ fn main() {
                     LoginState::SentPassword => {
                         let maybe_privexec_match = privexec_regex.find(&data_buffer);
                         if let Some(privexec_match) = maybe_privexec_match {
-                            println!("Matched privexec prompt! Session is open!");
+                            debug!("Matched privexec prompt! Session is open!");
                             let (_, remainder) = data_buffer.split_at(privexec_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::Established;
@@ -71,16 +74,16 @@ fn main() {
                         }
                     }
                     _ => {
-                        println!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
+                        debug!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
                     }
                 }
             }
             _ => {
-                println!("{:?}", &event);
+                debug!("{:?}", &event);
             }
         }
     }
-    println!("Showtime!");
+    debug!("Showtime!");
     connection.write(b"term len 0\n");
     login_state = LoginState::ReadingOutput;
 
@@ -95,7 +98,7 @@ fn main() {
                     LoginState::ReadingOutput => {
                         let maybe_privexec_match = privexec_regex.find(&data_buffer);
                         if let Some(privexec_match) = maybe_privexec_match {
-                            println!("Matched privexec prompt! Data buffer: {}", &data_buffer);
+                            debug!("Matched privexec prompt! Data buffer: {}", &data_buffer);
                             let (_, remainder) = data_buffer.split_at(privexec_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::Established;
@@ -104,12 +107,12 @@ fn main() {
 
                     }
                     _ => {
-                        println!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
+                        debug!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
                     }
                 }
             }
             _ => {
-                println!("{:?}", &event);
+                debug!("{:?}", &event);
             }
         }
     }
@@ -128,7 +131,7 @@ fn main() {
                     LoginState::ReadingOutput => {
                         let maybe_privexec_match = privexec_regex.find(&data_buffer);
                         if let Some(privexec_match) = maybe_privexec_match {
-                            println!("Matched privexec prompt! Data buffer: {}", &data_buffer);
+                            debug!("Matched privexec prompt! Data buffer: {}", &data_buffer);
                             let (_, remainder) = data_buffer.split_at(privexec_match.end());
                             data_buffer = remainder.to_string();
                             login_state = LoginState::Established;
@@ -137,12 +140,12 @@ fn main() {
 
                     }
                     _ => {
-                        println!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
+                        debug!("Other state: {:?}. data buffer: {}", &login_state, &data_buffer);
                     }
                 }
             }
             _ => {
-                println!("{:?}", &event);
+                debug!("{:?}", &event);
             }
         }
     }

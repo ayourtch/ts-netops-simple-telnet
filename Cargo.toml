@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 telnet = "*"
 regex = "*"
+env_logger = "*"
+log = "*"
