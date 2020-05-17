@@ -33,6 +33,9 @@ fn main() {
     let username_regex = Regex::new(r"(?m)^[Uu]sername:").unwrap();
     let password_regex = Regex::new(r"(?m)^[Pp]assword:").unwrap();
     let author_failed_regex = Regex::new(r"(?m)^% Authorization failed.").unwrap();
+    let authen_failed_regex = Regex::new(r"(?m)^% Authentication failed").unwrap();
+    let mut authen_failed_count = 0;
+    let max_authen_failed_count = 2;
     let privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z()]+)#").unwrap();
     let non_privexec_regex = Regex::new(r"(?m)^([-_a-z0-9A-Z]+)>").unwrap();
 
@@ -112,6 +115,24 @@ fn main() {
                             data_buffer = remainder.to_string();
                             connection.write(b"enable\n").unwrap();
                             login_state = LoginState::Initial;
+                        }
+                        if let Some(authen_failed_match) = authen_failed_regex.find(&data_buffer) {
+                            debug!("Authentication failed!");
+                            authen_failed_count = authen_failed_count + 1;
+                            if authen_failed_count > max_authen_failed_count {
+                                panic!("Too many failed authentications!");
+                            }
+                            let (_, remainder) = data_buffer.split_at(authen_failed_match.end());
+                            data_buffer = remainder.to_string();
+                        }
+                        if let Some(user_match) = username_regex.find(&data_buffer) {
+                            debug!("Matched username prompt! Data buffer: {}", &data_buffer);
+                            connection
+                                .write(&format!("{}\n", &ts_netops_user).as_bytes())
+                                .unwrap();
+                            let (_, remainder) = data_buffer.split_at(user_match.end());
+                            data_buffer = remainder.to_string();
+                            login_state = LoginState::SentUsername;
                         }
                     }
                     _ => {
